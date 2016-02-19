@@ -1,0 +1,226 @@
+﻿
+@{
+    ViewBag.Title = "Create";
+}
+
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
+<script src="~/scripts/jquery-2.2.0.min.js"></script>
+@*<script src="~/scripts/bootstrap.min.js"></script>*@
+<script src="~/scripts/knockout-3.4.0.js"></script>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnsave").on('click', function () {
+            var url = '@Url.Action("SaveOrder", "OrderManager")';
+            var data = [];
+
+            data.push(
+                 {
+                     ItemName: 'Laptop',
+                     Quantity: 1000,
+                 },
+                 {
+                     ItemName: 'Desktop',
+                     Quantity: 900,
+                 }
+                );
+            $.ajax({
+                url:url,
+                type:"POST",
+                data:{
+                    order:{
+                      CustomerName:'MS'
+                    },
+                    orditemdetails:data
+                },
+                datatype:'json',
+                ContentType:'application/json;utf-8'
+            }).done(function(resp){
+                alert('Success ' +resp);
+            }).error(function(err){
+                alert("Error " + err.status);
+            });
+
+        });
+
+    });
+</script>
+
+
+<h2>Order Manager</h2>
+<table class="table table-bordered table-responsive table-condensed" id="tblcust">
+    <tr>
+        <td>
+            OrderId
+        </td>
+        <td>
+            <input type="text" id="ordiId"  class="form-control" data-bind="value:OrderId"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Customer Name
+        </td>
+        <td>
+            <input type="text" id="custName" class="form-control"  data-bind="value:CustomerName"/>
+        </td>
+    </tr>
+</table>
+
+<table class="table table-bordered table-responsive table-condensed" id="tbldetails">
+    <thead>
+        <tr>
+            <td>
+                Item Name
+            </td>
+            <td>
+                Quantity
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody data-bind="template: { name: currentTemplate, foreach: OrderItemDetails }">
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>
+
+            </td>
+            <td>
+                <input type="button" class="glyphicon glyphicon-plus" 
+                       id="btnaddnewitem" value="Add Item"
+                        data-bind="click:$root.addNewItem"/>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+
+
+
+<input type="button" class="btn btn-success" id="btnsave" value="Save"/> 
+
+
+<script type="text/html" id="itemTemplate">
+    <tr>
+        <td>
+            <input type="text" data-bind="value:$data.ItemName" class="form-control" />
+        </td>
+        <td>
+            <input type="text" data-bind="value:$data.Quantity" class="form-control" />
+        </td> 
+        <td>
+            <input type="button" value="Save Item" data-bind="click:$root.saveItem($data)  "/>
+        </td>
+        <td>
+            <input type="button" value="Cancel Item" data-bind="click:function(){viewModel.reset()}" />
+        </td>
+    </tr>
+</script>
+
+<script type="text/html" id="readTemplate">
+    <tr>
+        <td>
+            <span data-bind="text:ItemName" />
+        </td>
+        <td>
+            <span data-bind="value:Quantity" />
+        </td>
+        <td>
+            <input type="button" value="Edit" data-bind="click:function(){viewModel.itemTemplate($data)}" />
+        </td>
+        <td>
+            <input type="button" value="Delete" data-bind="click:function(){viewModel.reset()}" />
+        </td>
+    </tr>
+</script>
+
+<script type="text/javascript">
+
+    var self = this;
+    self.OrderItemDetails = ko.observableArray();
+    self.savedItem = ko.observableArray();
+
+    var viewModel = {
+        OrderId : ko.observable(0),
+        ItemId : ko.observable(0),
+        CustomerName: ko.observable(""),
+        itemTemplate:ko.observable('itemTemplate'),
+        readTemplate: ko.observable()
+    };
+
+
+    viewModel.currentTemplate = function (tmpl) {
+        return tmpl === this.readTemplate() ? 'itemTemplate' : this.itemTemplate();
+    }.bind(viewModel);
+
+    var Order = {
+        OrderId: viewModel.OrderId,
+        CustomerName: viewModel.CustomerName
+    };
+
+    viewModel.saveItem = function (data) {
+        alert(JSON.stringify(data));
+        self.savedItem.push(obj);
+    };
+    
+
+    viewModel.editItem = function () {
+        var obj = new orderItemInfo();
+        self.savedItem.push(obj);
+    };
+
+     
+    viewModel.addNewItem = function () {
+        debugger;
+        var obj = new orderItemInfo(1, 'ddd');
+        alert(JSON.stringify(obj));
+
+        self.OrderItemDetails.push(obj);
+    };
+
+    //Reset the Curernt item in array 
+    viewModel.reset = function () {
+        self.OrderItemDetails.pop();
+    };
+
+
+    viewModel.saveData = function () {
+        var url = '@Url.Action("SaveOrder", "OrderManager")';
+        
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: {
+                order: {
+                    CustomerName: Order.CustomerName
+                },
+                orditemdetails: self.savedItem
+            },
+            datatype: 'json',
+            ContentType: 'application/json;utf-8'
+        }).done(function (resp) {
+            alert('Success ' + resp);
+        }).error(function (err) {
+            alert("Error " + err.status);
+        });
+
+    };
+
+
+
+    function orderItemInfo(itemName, qty) {
+        return {
+            ItemName: ko.observable(itemName),
+            Quantity: ko.observable(qty)
+        };
+    }
+
+        ko.applyBindings(viewModel);
+    
+</script>

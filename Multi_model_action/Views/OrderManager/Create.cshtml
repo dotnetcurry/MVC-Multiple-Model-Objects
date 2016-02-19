@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewBag.Title = "Create";
+}
+
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
+<script src="~/scripts/jquery-2.2.0.min.js"></script>
+<script src="~/scripts/bootstrap.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnSave").on('click', function () {
+            var url = '@Url.Action("SaveOrder", "OrderManager")';
+            var data = [];
+
+            data.push(
+                 {
+                     ItemName: 'Laptop',
+                     Quantity: 1000,
+                 },
+                 {
+                     ItemName: 'Desktop',
+                     Quantity: 900,
+                 }
+                );
+            $.ajax({
+                url:url,
+                type:"POST",
+                data:{
+                    order:{
+                      CustomerName:'MS'
+                    },
+                    orditemdetails:data
+                },
+                datatype:'json',
+                ContentType:'application/json;utf-8'
+            }).done(function(resp){
+                alert('Success ' +resp);
+            }).error(function(err){
+                alert("Error " + err.status);
+            });
+
+        });
+
+    });
+</script>
+
+<body>
+    <input type="button" value="Save" id="btnSave" class="btn btn-success"/>
+</body>
